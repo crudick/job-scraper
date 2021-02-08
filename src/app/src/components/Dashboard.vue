@@ -1,5 +1,6 @@
 <template>
 <div>
+    <title>Job Search</title>
         <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -150,6 +151,18 @@
                                                                 :key="idx"
                                                                 :selected="item.value===filters.employmentType"
                                                                 href="javascript:void(0);">{{item.display}}</option>
+                                                        </select>
+                                                </div>
+                                                <div class="form-group col-2">
+                                                        <label>Company</label>
+                                                        <select class="custom-select custom-select-sm" v-model="filters.company" >
+                                                            <option value="ALL" selected>All Companies</option>
+                                                            <option
+                                                                v-for="(item, idx) in companyOptions"
+                                                                :key="idx"
+                                                                :value="item.value"
+                                                                :selected="item.value===filters.company"
+                                                                href="javascript:void(0);">{{item.value}} - {{item.count}}</option>
                                                         </select>
                                                 </div>
                                                 <div class="form-group col-2">
@@ -322,6 +335,7 @@ export default {
               employmentType: 'ALL',
               ageType: '>',
               age: '0',
+              company: 'ALL',
               employmentTypes: [
                   {
                       value: 'ALL',
@@ -347,11 +361,32 @@ export default {
       }
   },
   computed:{
+      companyOptions: function(){
+          var jobs = this.jobs;
+          var options = [];
+          jobs.forEach(j => {
+              if(!options.find(x=>{x.value == j.value})){
+                  options.push({
+                      value: j.company,
+                      count: 1
+                      });
+              }else{
+                  options.find(x=>{x.value == j.value}).count++;
+              }
+          });
+          return options;
+      },
       filteredJobs: function(){
         var jobs = this.jobs;
+        var filters = this.filters;
         if(this.filters.hasRecruiter){
             jobs = jobs.filter(function (job) {
                 return job.recruiter?.name;
+            });
+        }
+        if(this.filters.company !== 'ALL'){
+            jobs = jobs.filter(function (job) {
+                return job.company === filters.company;
             });
         }
         if(this.filters.age && this.filters.ageType){
@@ -456,6 +491,7 @@ export default {
         this.state.showSearchResults = false;
         this.filters.employmentType = 'ALL';
         this.filters.hasRecruiter = false;
+        this.filters.company = 'ALL';
     },
     showJobDetails(job){
         job.showDetails = !job.showDetails;
